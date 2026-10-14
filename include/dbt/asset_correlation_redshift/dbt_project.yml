@@ -18,3 +18,23 @@ models:
   asset_correlation_redshift:
     staging:
       +materialized: view
+      +schema: staging
+
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+
+    marts:
+      +materialized: table
+      +schema: marts
+
+      fct_assets:
+        +materialized: incremental
+        +sort: price_date
+        +dist: ticker_symbol
+      
+      dim_dates:
+        +dist: all
+      
+      fct_assets_rpt:
+        +dist: even

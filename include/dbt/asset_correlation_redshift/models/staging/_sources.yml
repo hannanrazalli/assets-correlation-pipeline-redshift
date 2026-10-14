@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: assets_sources
+    description: "Raw data sources for forex, stocks, bitcoin and gold ingested from frankfurter and yfinance"
+    database: dev
+    schema: raw_data
+    tables:
+      - name: raw_forex
+        description: "Daily exchange rate from frankfurter for US vs MYR"
+        columns:
+          - name: date
+            tests:
+              - not_null
+
+      - name: raw_stocks
+        description: "Daily close price for SP500 & KLCI stocks"
+        columns:
+          - name: date
+            tests:
+              - not_null
+
+      - name: raw_bitcoin
+        description: "Daily close price for Bitcoin USD"
+        columns:
+          - name: date
+            tests:
+              - not_null
+
+      - name: raw_gold
+        description: "Daily close price for SPDR Gold Shares"
+        columns:
+          - name: date
+            tests:
+              - not_null

@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: stg_forex
+    columns:
+      - name: base_currency
+        tests:
+          - not_null:
+              config:
+                severity: error
+          - accepted_values:
+              arguments:
+                values: ["USD"]
+
+      - name: target_currency
+        tests:
+          - not_null:
+              config:
+                severity: error
+          - accepted_values:
+              arguments:
+                values: ["MYR"]
+
+      - name: forex_date
+        tests:
+          - not_null:
+              config:
+                severity: error
+
+      - name: exchange_rate
+        tests:
+          - not_null:
+              config:
+                severity: error
+
+  - name: stg_assets
+    columns:
+      - name: close_price
+        tests:
+          - not_null:
+              config:
+                severity: error
+          
+      - name: ticker_symbol
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["^GSPC", "^KLSE", "BTC_USD", "GLD"]
+
+      - name: price_date
+        tests:
+          - not_null:
+              config:
+                severity: error
