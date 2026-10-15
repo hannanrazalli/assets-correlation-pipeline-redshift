@@ -3,7 +3,7 @@
     incremental_strategy='merge',
     unique_key='asset_key',
     on_schema_change='append_new_column',
-    dist='ticker_symbol',
+    dist='price_date',
     sort='price_date'
 ) }}
 

@@ -1,17 +1,26 @@
--- depends_on: {{ ref('int_assets') }}
-
 {{ config(
     materialized='table',
     sort='price_date',
     dist='ALL' 
 ) }}
 
-with date_spine as (
-    select 
-        dateadd(day, row_number() over (order by true) - 1, '2020-01-01')::date as date_val
-    from 
-        pg_catalog.svv_table_info 
-    limit 4000 
+with digits as (
+    select 0 as n union all select 1 union all select 2 union all select 3 union all select 4
+    union all select 5 union all select 6 union all select 7 union all select 8 union all select 9
+),
+
+numbers as (
+    select (d3.n * 1000 + d2.n * 100 + d1.n * 10 + d0.n) as num
+    from digits d0
+    cross join digits d1
+    cross join digits d2
+    cross join digits d3
+),
+
+date_spine as (
+    select dateadd(day, num, '2020-01-01')::date as date_val
+    from numbers
+    where dateadd(day, num, '2020-01-01') <= '2030-12-31'
 )
 
 select
@@ -25,4 +34,3 @@ select
     to_char(date_val, 'Day') as day_name,
     case when extract(dow from date_val) in (0, 6) then true else false end as is_weekend
 from date_spine
-where date_val <= '2030-12-31'
