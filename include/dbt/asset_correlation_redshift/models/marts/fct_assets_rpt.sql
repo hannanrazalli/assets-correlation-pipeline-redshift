@@ -1,7 +1,7 @@
 {{ config(
     materialized='table',
     sort='price_date',
-    dist='EVEN' 
+    dist='price_date' 
 ) }}
 
 with fct_assets as (select * from {{ ref('fct_assets') }}),

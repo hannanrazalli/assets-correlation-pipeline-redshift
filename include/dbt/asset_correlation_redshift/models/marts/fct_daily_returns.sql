@@ -1,7 +1,7 @@
 {{ config(
     materialized='table',
     sort='price_date',
-    dist='ticker_symbol'
+    dist='price_date'
 ) }}
 
 with fct_assets as (
