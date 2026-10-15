@@ -1,0 +1,17 @@
+# Core dbt & Cosmos
+dbt-core>=1.8.0
+dbt-redshift
+astronomer-cosmos>=1.4.0
+
+# Data manipulation & AWS
+pandas
+boto3
+awswrangler
+requests
+yfinance
+
+# Airflow Providers
+apache-airflow-providers-amazon
+
+# Utility
+python-dotenv
