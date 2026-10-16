@@ -1,7 +1,7 @@
 {{ config(
     materialized='table',
     sort='price_date',
-    dist='ALL' 
+    dist='ALL'
 ) }}
 
 with digits as (

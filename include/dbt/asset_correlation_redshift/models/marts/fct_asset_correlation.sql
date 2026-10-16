@@ -1,9 +1,3 @@
-{{ config(
-    materialized='table',
-    sort='price_date',
-    dist='price_date'
-) }}
-
 with fct_daily_returns as (
     select * from {{ ref('fct_daily_returns') }}
 ),
@@ -28,37 +22,91 @@ correlation as (
     select
         price_date,
         day_number,
+
         -- 1. KLCI vs S&P 500
-        ROUND(CORR(klci_return, sp500_return) over(
-            ORDER BY price_date
-            ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
-        ), 2) as corr_sp500_klse_30d,
+        round(cast(
+            (
+                avg(klci_return::float8 * sp500_return::float8) over(order by price_date rows between 29 preceding and current row)
+                - (avg(klci_return::float8) over(order by price_date rows between 29 preceding and current row)
+                   * avg(sp500_return::float8) over(order by price_date rows between 29 preceding and current row))
+            )
+            / nullif(
+                stddev_pop(klci_return::float8) over(order by price_date rows between 29 preceding and current row)
+                * stddev_pop(sp500_return::float8) over(order by price_date rows between 29 preceding and current row),
+                0
+            )
+        as decimal(18, 6)), 2) as corr_sp500_klse_30d,
 
         -- 2. S&P 500 vs BTC
-        ROUND(CORR(btc_return, sp500_return) OVER (
-            ORDER BY price_date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
-        ), 2) AS corr_sp500_btc_30d,
+        round(cast(
+            (
+                avg(btc_return::float8 * sp500_return::float8) over(order by price_date rows between 29 preceding and current row)
+                - (avg(btc_return::float8) over(order by price_date rows between 29 preceding and current row)
+                   * avg(sp500_return::float8) over(order by price_date rows between 29 preceding and current row))
+            )
+            / nullif(
+                stddev_pop(btc_return::float8) over(order by price_date rows between 29 preceding and current row)
+                * stddev_pop(sp500_return::float8) over(order by price_date rows between 29 preceding and current row),
+                0
+            )
+        as decimal(18, 6)), 2) as corr_sp500_btc_30d,
 
         -- 3. S&P 500 vs Gold
-        ROUND(CORR(gold_return, sp500_return) OVER (
-            ORDER BY price_date
-            ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
-        ), 2) AS corr_sp500_gold_30d,
+        round(cast(
+            (
+                avg(gold_return::float8 * sp500_return::float8) over(order by price_date rows between 29 preceding and current row)
+                - (avg(gold_return::float8) over(order by price_date rows between 29 preceding and current row)
+                   * avg(sp500_return::float8) over(order by price_date rows between 29 preceding and current row))
+            )
+            / nullif(
+                stddev_pop(gold_return::float8) over(order by price_date rows between 29 preceding and current row)
+                * stddev_pop(sp500_return::float8) over(order by price_date rows between 29 preceding and current row),
+                0
+            )
+        as decimal(18, 6)), 2) as corr_sp500_gold_30d,
 
         -- 4. KLCI vs BTC
-        ROUND(CORR(btc_return, klci_return) OVER (
-            ORDER BY price_date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
-        ), 2) AS corr_klse_btc_30d,
+        round(cast(
+            (
+                avg(btc_return::float8 * klci_return::float8) over(order by price_date rows between 29 preceding and current row)
+                - (avg(btc_return::float8) over(order by price_date rows between 29 preceding and current row)
+                   * avg(klci_return::float8) over(order by price_date rows between 29 preceding and current row))
+            )
+            / nullif(
+                stddev_pop(btc_return::float8) over(order by price_date rows between 29 preceding and current row)
+                * stddev_pop(klci_return::float8) over(order by price_date rows between 29 preceding and current row),
+                0
+            )
+        as decimal(18, 6)), 2) as corr_klse_btc_30d,
 
         -- 5. KLCI vs Gold
-        ROUND(CORR(gold_return, klci_return) OVER (
-            ORDER BY price_date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
-        ), 2) AS corr_klse_gold_30d,
+        round(cast(
+            (
+                avg(gold_return::float8 * klci_return::float8) over(order by price_date rows between 29 preceding and current row)
+                - (avg(gold_return::float8) over(order by price_date rows between 29 preceding and current row)
+                   * avg(klci_return::float8) over(order by price_date rows between 29 preceding and current row))
+            )
+            / nullif(
+                stddev_pop(gold_return::float8) over(order by price_date rows between 29 preceding and current row)
+                * stddev_pop(klci_return::float8) over(order by price_date rows between 29 preceding and current row),
+                0
+            )
+        as decimal(18, 6)), 2) as corr_klse_gold_30d,
 
         -- 6. BTC vs Gold
-        ROUND(CORR(gold_return, btc_return) OVER (
-            ORDER BY price_date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
-        ), 2) AS corr_btc_gold_30d
+        round(cast(
+            (
+                avg(gold_return::float8 * btc_return::float8) over(order by price_date rows between 29 preceding and current row)
+                - (avg(gold_return::float8) over(order by price_date rows between 29 preceding and current row)
+                   * avg(btc_return::float8) over(order by price_date rows between 29 preceding and current row))
+            )
+            / nullif(
+                stddev_pop(gold_return::float8) over(order by price_date rows between 29 preceding and current row)
+                * stddev_pop(btc_return::float8) over(order by price_date rows between 29 preceding and current row),
+                0
+            )
+        as decimal(18, 6)), 2) as corr_btc_gold_30d
+
     from returns_pivoted
 )
 

@@ -27,14 +27,11 @@ models:
     marts:
       +materialized: table
       +schema: marts
+      +sort: price_date
+      +dist: price_date
 
       fct_assets:
         +materialized: incremental
-        +sort: price_date
-        +dist: ticker_symbol
       
       dim_dates:
         +dist: all
-      
-      fct_assets_rpt:
-        +dist: even

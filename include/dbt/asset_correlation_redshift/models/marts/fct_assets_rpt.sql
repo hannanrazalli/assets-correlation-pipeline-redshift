@@ -1,9 +1,3 @@
-{{ config(
-    materialized='table',
-    sort='price_date',
-    dist='price_date' 
-) }}
-
 with fct_assets as (select * from {{ ref('fct_assets') }}),
 
 fct_correlation as (select * from {{ ref('fct_asset_correlation') }}),

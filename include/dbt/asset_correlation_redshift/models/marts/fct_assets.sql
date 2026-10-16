@@ -2,9 +2,7 @@
     materialized='incremental',
     incremental_strategy='merge',
     unique_key='asset_key',
-    on_schema_change='append_new_column',
-    dist='price_date',
-    sort='price_date'
+    on_schema_change='append_new_column'
 ) }}
 
 with int_forex as (
