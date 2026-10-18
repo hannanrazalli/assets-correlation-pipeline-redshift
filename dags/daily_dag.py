@@ -17,8 +17,6 @@ from include.utilities.cosmos_config import (
 from include.utilities.slack_alerts import slack_failure_alert
 
 BUCKET = os.getenv("BUCKET_NAME")
-if not BUCKET:
-    raise ValueError("Env var BUCKET_NAME belum di-set")
 
 default_args = {
     "owner": "Hannan",
@@ -45,7 +43,7 @@ def has_files(name, logical_date, **_):
     max_active_runs=1,
 )
 def asset_pipeline():
-    # ---------- 1. Ingestion (sama macam asal) ----------
+    # ---------- 1. Ingestion ----------
     @task(task_id="daily_forex")
     def daily_forex(ds=None):
         from include.ingestions.api.forex import forex
@@ -70,7 +68,7 @@ def asset_pipeline():
 
         gold(ds=ds)
 
-    # ---------- 2. Semak ada fail di S3 (BARU) ----------
+    # ---------- 2. Check S3 files ----------
     check_forex = ShortCircuitOperator(
         task_id="check_forex_has_data",
         python_callable=has_files,
@@ -96,7 +94,7 @@ def asset_pipeline():
         ignore_downstream_trigger_rules=False,
     )
 
-    # ---------- 3. Load S3 -> Redshift (sama macam asal) ----------
+    # ---------- 3. Load S3 -> Redshift ----------
     load_forex = S3ToRedshiftOperator(
         task_id="load_forex_to_redshift",
         schema="raw_data",
@@ -151,7 +149,7 @@ def asset_pipeline():
         operator_args={"install_deps": True, "trigger_rule": "none_failed"},
     )
 
-    # ---------- 5. Susunan ----------
+    # ---------- 5. Workflows ----------
     daily_forex() >> check_forex >> load_forex
     daily_stocks() >> check_stocks >> load_stocks
     daily_bitcoin() >> check_bitcoin >> load_bitcoin
