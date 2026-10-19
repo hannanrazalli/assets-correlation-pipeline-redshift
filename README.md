@@ -213,6 +213,8 @@ asset_correlation_redshift:
       threads: 4
 ```
 
+![Redshift correlation query results](docs/images/redshift-correlation-results.png)
+
 Set these environment variables in the shell running dbt. Manual dbt does not automatically load the root `.env` or reuse Airflow connections. In a compatible environment with dbt-redshift installed:
 
 ```bash
