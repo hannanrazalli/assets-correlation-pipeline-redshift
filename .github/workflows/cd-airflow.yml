@@ -1,4 +1,4 @@
-name: CD - Deploy Airflow to EC2
+name: CD - Deploy Redshift Airflow to EC2
 
 on:
   push:
@@ -61,7 +61,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script_stop: true
           script: |
-            cd ~/assets-correlation-pipeline
+            cd ~/assets-correlation-pipeline-redshift
             git fetch origin main
             git reset --hard origin/main
             git log -1 --oneline
@@ -75,7 +75,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script_stop: true
           script: |
-            cd ~/assets-correlation-pipeline
+            cd ~/assets-correlation-pipeline-redshift
             astro dev restart
             docker ps
 

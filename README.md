@@ -132,7 +132,9 @@ Counts describe configured checks, not a guarantee that they pass on every run. 
 
 Generated Astro DAG tests are included. Their tag and retry expectations do not match the current DAG: it has no tags and sets one retry, while the example expects tags and at least two retries. Adapt those checks before using them as CI acceptance criteria.
 
-**Redshift CI/CD is planned.** This repository currently has no GitHub Actions workflows. Astro/Docker can run on EC2, but resource provisioning, automated deployment and deployment health checks are not supplied here. Deployment depends on your existing host, Docker/Astro installation, environment and warehouse network access.
+GitHub Actions uses the same checks as the Glue/Athena stack: Ruff, DAG imports with Airflow's `DagBag`, and `dbt deps`/`dbt parse` with a dummy Redshift profile. CI does not run transformations or data tests against Redshift.
+
+CD runs on pushes to `main` or manual dispatch. It temporarily allows the runner's IP to access EC2 over SSH, updates `~/assets-correlation-pipeline-redshift` to `origin/main`, restarts Astro when image inputs change, checks Airflow health and then revokes the temporary network rule. It requires GitHub secrets `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_SG_ID`, `EC2_HOST`, `EC2_USER` and `EC2_SSH_KEY`, plus an existing EC2 checkout, Astro/Docker setup and warehouse access. CD is not explicitly set to wait for CI to finish.
 
 Slack task-failure notifications use `slack_alert_conn` and include task details and an Airflow log link. The callback does not set a request timeout or check the HTTP response; delivery is not verified.
 

@@ -1,4 +1,4 @@
-name: CI Test Asset Correlation
+name: CI Test Asset Correlation Redshift
 
 on:
   workflow_dispatch:
@@ -64,18 +64,21 @@ jobs:
 
       - name: Run test
         run: |
-          cd include/dbt/asset_correlation
+          cd include/dbt/asset_correlation_redshift
 
           cat << EOF > profiles.yml
-          asset_correlation:
+          asset_correlation_redshift:
             target: dev
             outputs:
               dev:
-                type: athena
-                s3_staging_dir: s3://dummy-bucket/
-                region_name: ap-southeast-1
+                type: redshift
+                host: localhost
+                port: 5439
+                user: dummy_user
+                pass: dummy_password
+                dbname: dev
                 schema: dummy_schema
-                database: awsdatacatalog
+                threads: 1
           EOF
 
           dbt deps --profiles-dir .
