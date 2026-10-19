@@ -9,8 +9,7 @@ models:
               config:
                 severity: error
           - accepted_values:
-              arguments:
-                values: ["USD"]
+              values: ["USD"]
 
       - name: target_currency
         tests:
@@ -18,8 +17,7 @@ models:
               config:
                 severity: error
           - accepted_values:
-              arguments:
-                values: ["MYR"]
+              values: ["MYR"]
 
       - name: forex_date
         tests:
@@ -44,8 +42,7 @@ models:
       - name: ticker_symbol
         tests:
           - accepted_values:
-              arguments:
-                values: ["^GSPC", "^KLSE", "BTC_USD", "GLD"]
+              values: ["^GSPC", "^KLSE", "BTC_USD", "GLD"]
 
       - name: price_date
         tests:

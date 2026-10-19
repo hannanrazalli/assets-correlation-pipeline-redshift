@@ -11,16 +11,14 @@ models:
       - name: price_date
         tests:
           - relationships:
-              arguments:
-                to: ref('dim_dates')
-                field: price_date
+              to: ref('dim_dates')
+              field: price_date
 
       - name: ticker_symbol
         tests:
           - relationships:
-              arguments:
-                to: ref('dim_assets')
-                field: ticker
+              to: ref('dim_assets')
+              field: ticker
 
       - name: close_price_myr
         tests:
