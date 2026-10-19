@@ -1,0 +1,107 @@
+name: CD - Deploy Airflow to EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      needs_restart: ${{ steps.filter.outputs.rebuild }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check which files changed
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            rebuild:
+              - 'Dockerfile'
+              - 'requirements.txt'
+              - 'packages.txt'
+
+  deploy:
+    needs: check-changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # [NEW Step 1] Dapatkan IP awam GitHub Actions Runner
+      - name: Get GitHub Runner IP
+        id: ip
+        run: echo "RUNNER_IP=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_ENV
+
+      # [NEW Step 2] Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # [NEW Step 3] Buka Port 22 khas untuk IP Runner ini sahaja
+      - name: Whitelist Runner IP in Security Group
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.AWS_SG_ID }}" \
+            --protocol tcp --port 22 --cidr ${{ env.RUNNER_IP }}/32
+
+      - name: Pull latest code on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            cd ~/assets-correlation-pipeline
+            git fetch origin main
+            git reset --hard origin/main
+            git log -1 --oneline
+
+      - name: Restart Airflow (only if image files changed)
+        if: needs.check-changes.outputs.needs_restart == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            cd ~/assets-correlation-pipeline
+            astro dev restart
+            docker ps
+
+      - name: Health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            for i in $(seq 1 12); do
+              STATUS=$(curl -s http://localhost:8080/api/v2/monitor/health | grep -o '"status":"healthy"' | wc -l)
+              if [ "$STATUS" -ge "2" ]; then
+                echo "Airflow is healthy."
+                exit 0
+              fi
+              echo "Attempt $i: not healthy yet, waiting 10s..."
+              sleep 10
+            done
+            echo "Airflow failed health check after 120 seconds."
+            exit 1
+
+      - name: Revoke Runner IP from Security Group
+        if: always()
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id "${{ secrets.AWS_SG_ID }}" \
+            --protocol tcp --port 22 --cidr ${{ env.RUNNER_IP }}/32
