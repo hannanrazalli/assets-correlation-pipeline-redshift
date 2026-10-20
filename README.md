@@ -213,8 +213,6 @@ asset_correlation_redshift:
       threads: 4
 ```
 
-![Redshift correlation query results](docs/images/redshift-correlation-results.png)
-
 Set these environment variables in the shell running dbt. Manual dbt does not automatically load the root `.env` or reuse Airflow connections. In a compatible environment with dbt-redshift installed:
 
 ```bash
@@ -247,6 +245,7 @@ WHERE corr_sp500_klse_30d IS NOT NULL
 ORDER BY price_date DESC
 LIMIT 10;
 ```
+![Redshift correlation query results](docs/images/redshift-correlation-results.png)
 
 Each row is a date-specific snapshot of how returns moved together across the rolling window. Missing data affects the observations included. The `_30d` suffix means 30 matched observations, not necessarily 30 calendar days. Check loaded data before claiming particular correlation patterns.
 
